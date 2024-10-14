@@ -34,18 +34,16 @@ with open(full_csv_path, 'w', newline='') as file:
     writer.writerow(['Tweet Number', 'Username', 'Text', 'Created At', 'Retweets', 'Likes'])
     
 
-
 # query tweets
 QUERY='(wfm OR remoteworking OR smartworking) (#wfm OR #remotework OR #smartwork OR #workfromhome OR #remoteworking) lang:en'
 async def get_tweets(tweets):
     if tweets is None:
-        tweets = await client.search_tweet(QUERY, product='Top')
+        tweets = await client.search_tweet(QUERY, product='Latest')
     else:
         wait_time = randint(5, 10)
         await asyncio.sleep(wait_time)
         tweets = await tweets.next()
     return tweets
-
 
 
 async def main():
@@ -70,7 +68,7 @@ async def main():
             tweet_number += 1
             tweet_data = [tweet_number, tweet.user.name, tweet.text, tweet.created_at, tweet.retweet_count, tweet.favorite_count]
             
-            with open(full_csv_path, 'a', newline='') as file:
+            with open(full_csv_path, 'a', newline='',encoding="utf-8") as file:
                 writer = csv.writer(file)
                 writer.writerow(tweet_data)
 
