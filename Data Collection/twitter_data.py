@@ -27,8 +27,9 @@ async def login():
 client.load_cookies('cookies.json')
 
 
+full_csv_path = os.path.join(os.getcwd(), 'Data Collection', 'twitter_data.csv')
 # create csv file to save tweets
-with open('twitter_data.csv', 'w', newline='') as file:
+with open(full_csv_path, 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(['Tweet Number', 'Username', 'Text', 'Created At', 'Retweets', 'Likes'])
     
@@ -71,7 +72,7 @@ async def main():
             tweet_number += 1
             tweet_data = [tweet_number, tweet.user.name, tweet.text, tweet.created_at, tweet.retweet_count, tweet.favorite_count]
             
-            with open('twitter_data.csv', 'a', newline='') as file:
+            with open(full_csv_path, 'a', newline='') as file:
                 writer = csv.writer(file)
                 writer.writerow(tweet_data)
 
