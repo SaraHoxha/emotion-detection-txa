@@ -17,13 +17,13 @@ username = config['X']['username']
 email = config['X']['email']
 password = config['X']['password']
 
-# authenticate to X.com using the login credentials
+# authenticate to X using the login credentials
 client = Client(language='en')
 async def login():
     await client.login(auth_info_1=username, auth_info_2=email, password=password)
     client.save_cookies('cookies.json')
 
-asyncio.run(login())
+#asyncio.run(login())
 client.load_cookies('cookies.json')
 
 
@@ -33,44 +33,47 @@ with open('twitter_data.csv', 'w', newline='') as file:
     writer.writerow(['Tweet Number', 'Username', 'Text', 'Created At', 'Retweets', 'Likes'])
     
 
+
 # query tweets
-MINIMUM_TWEETS = 10000
-QUERY=''
-    
-def get_tweets(tweets):
+QUERY='(wfm OR remoteworking OR smartworking) (#wfm OR #remotework OR #smartwork OR #workfromhome OR #remoteworking) lang:en'
+async def get_tweets(tweets):
     if tweets is None:
-        tweets = client.search_tweet(QUERY, product='Top')
+        tweets = await client.search_tweet(QUERY, product='Top')
     else:
         wait_time = randint(5, 10)
-        time.sleep(wait_time)
-        tweets = tweets.next()
-
+        await asyncio.sleep(wait_time)
+        print('waiting seconds ', wait_time)
+        tweets = await tweets.next()
+        print('numri i tweets per kete here', len(tweets))
     return tweets
 
-tweet_number = 0
-tweets = None
-    
-while tweet_number < MINIMUM_TWEETS:
-
-    try:
-        tweets = get_tweets(tweets)
-    except TooManyRequests as e:
-        rate_limit_reset = datetime.fromtimestamp(e.rate_limit_reset)
-        print(f'{datetime.now()} - Rate limit reached. Reset time: {rate_limit_reset}')
-        wait_time = rate_limit_reset - datetime.now()
-        time.sleep(wait_time.total_seconds())
-        continue
-
-    if not tweets:
-        break
-
-    for tweet in tweets:
-        tweet_number += 1
-        tweet_data = [tweet_number, tweet.user.name, tweet.text, tweet.created_at, tweet.retweet_count, tweet.favorite_count]
-        
-        with open('twitter_data.csv', 'a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(tweet_data)
 
 
+async def main():
+    MINIMUM_TWEETS = 10000
+    tweet_number = 0
+    tweets = None
+    while tweet_number < MINIMUM_TWEETS:
 
+        try:
+            tweets = await get_tweets(tweets)
+        except TooManyRequests as e:
+            rate_limit_reset = datetime.fromtimestamp(e.rate_limit_reset)
+            print(f'{datetime.now()} - Rate limit reached. Reset time: {rate_limit_reset}')
+            wait_time = rate_limit_reset - datetime.now()
+            await asyncio.sleep(wait_time.total_seconds())
+            continue
+
+        if not tweets:
+            break
+
+        for tweet in tweets:
+            tweet_number += 1
+            tweet_data = [tweet_number, tweet.user.name, tweet.text, tweet.created_at, tweet.retweet_count, tweet.favorite_count]
+            
+            with open('twitter_data.csv', 'a', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(tweet_data)
+
+
+asyncio.run(main())
