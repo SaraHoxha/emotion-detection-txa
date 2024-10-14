@@ -43,9 +43,7 @@ async def get_tweets(tweets):
     else:
         wait_time = randint(5, 10)
         await asyncio.sleep(wait_time)
-        print('waiting seconds ', wait_time)
         tweets = await tweets.next()
-        print('numri i tweets per kete here', len(tweets))
     return tweets
 
 
