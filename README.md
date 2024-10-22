@@ -1,5 +1,5 @@
-# Social Media Sentiment Analysis & Emotion Detection on Remote Working
-This repository contains code/report prepared for our project on "Sentiment Analysis & Emotion Detection on Remote Working" for the "Text Analytics" course at University of Pisa.
+# Social Media Emotion Detection on Remote Working
+This repository contains code/report prepared for our project on "Emotion Detection on Remote Working" for the "Text Analytics" course at University of Pisa.
 
 ## Project Goal
 Our goal is to gain insight and shed light on how workers feel about remote work is essential, as their emotional well-being directly influences their job performance, overall satisfaction, and mental health. To do so, we will develop an emotion model that detects a range of emotions based on posts and discussions on social media platforms that remote workers engage in. The model will rely on the “Basic Emotions” framework developed by psychologist Paul Ekman (1984), which includes the following recognized emotions:  
