@@ -12,8 +12,8 @@ Surprise: Expressed through raised eyebrows, wide eyes, and an open mouth. Surpr
  
 Our research and data analysis, will seek to answer these questions: 
  
-How do employees feel about remote working after the COVID-19 pandemic? 
-How has the emotional response to remote work changed over time?
+1. How do employees feel about remote working after the COVID-19 pandemic?
+2. How has the emotional response to remote work changed over time?
 
 ## Project Structure
 
