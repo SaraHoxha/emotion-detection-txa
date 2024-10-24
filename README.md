@@ -33,3 +33,13 @@ The project is organized into the following directories:
           - `full dataset` subfolder: contains the three raw files of data retrieved from Go Emotions dataset.
           - `emotions.txt`: contains mapping of emotions
           -  `goemotions_train.tsv`: contains training labeled data.
+       
+### 2. **Data Preprocessing**
+   - **Purpose**: This folder contains all the necessary steps to prepare the extracted data for use in emotion detection models. It includes data cleaning, tokenization, stop words removal, and emoji and special characters mapping.
+   - **Files & Folders**:
+      - `data_preprocessing.ipynb`: Contains the complete data processing workflow, including the following steps:
+         - **Data Cleaning**: Removes unnecessary characters to normalize the text.
+         - **Tokenization**: Converts the text into a list of words or subwords.
+         - **Stop Words Removal**: Eliminates common words that do not add semantic value (e.g., "the," "and," "of," etc.).
+         - **Emoji and Special Characters Mapping**: Maps emojis and special characters to equivalent words or removes them as appropriate.
+
