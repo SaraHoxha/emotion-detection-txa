@@ -29,10 +29,6 @@ The project is organized into the following directories:
       - `twitter_data.csv`: data retrieved from X
       - `twitter_config.ini`: contains information about user authentication.
       - `cookies.json`: contains information about the already authenticated user, so as to avoid repeated calls to login method.
-      - `goemotions` Folder:
-          - `full dataset` subfolder: contains the three raw files of data retrieved from Go Emotions dataset.
-          - `emotions.txt`: contains mapping of emotions
-          -  `goemotions_train.tsv`: contains training labeled data.
        
 ### 2. **Data Preprocessing**
    - **Purpose**: This folder contains all the necessary steps to prepare the extracted data for use in emotion detection models. It includes data cleaning, tokenization, stop words removal, and emoji and special characters mapping.
