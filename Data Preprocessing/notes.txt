@@ -1,0 +1,6 @@
+In the filtered version, we still lose some data, specifically.
+Character count threshold (97th percentile): 511
+Number of texts above threshold: 4467
+Average length of long texts: 810 characters
+
+I guess it's not a big deal, but we should keep it in mind(Ofcourse analyzing the filtered column).
