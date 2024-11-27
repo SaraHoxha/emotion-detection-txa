@@ -1,166 +1,266 @@
 import torch
+import re
 from torch import optim, nn
 from sklearn.model_selection import train_test_split, KFold
 from itertools import product
 import matplotlib.pyplot as plt
 import numpy as np
+from torch.utils.data import DataLoader, TensorDataset
+from torch.nn.utils.rnn import pad_sequence
+import nltk
+from nltk.tokenize import word_tokenize
+from collections import Counter
+from torchtools.callbacks import EarlyStopping
+from torchtools.exceptions import EarlyStoppingException
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+import seaborn as sns
 
-# Training and validation function
+
 def train_and_validate(model, optimizer, criterion, train_loader, val_loader, epochs, device):
     """
-    Trains and validates a PyTorch model over multiple epochs.
-
-    Args:
-        model (torch.nn.Module): The model to train and validate.
-        optimizer (torch.optim.Optimizer): The optimizer used to update the model's weights.
-        criterion (torch.nn.Module): The loss function used to compute the error.
-        train_loader (torch.utils.data.DataLoader): DataLoader providing batches of training data (inputs and labels).
-        val_loader (torch.utils.data.DataLoader): DataLoader providing batches of validation data (inputs and labels).
-        epochs (int): The number of epochs to train the model.
-        device (torch.device): The device (CPU or GPU) to run the computations on.
-
-    Returns:
-        tuple: A tuple containing three lists:
-            - train_losses (list[float]): Average training loss per epoch.
-            - val_losses (list[float]): Average validation loss per epoch.
-            - val_accs (list[float]): Validation accuracy per epoch.
+    Trains and validates a PyTorch model.
     """
     train_losses, val_losses, val_accs = [], [], []
+    early_stopping = EarlyStopping(monitor="val_loss", mode='min', patience=5)
 
     for epoch in range(epochs):
         # Training mode
         model.train()
-        total_train_loss = 0 #Initialize total_train_loss to 0
+        total_train_loss = 0
         for inputs, labels in train_loader:
-            inputs, labels = inputs.to(device), labels.to(device) 
-            optimizer.zero_grad() # clear previous gradients
-            output = model(inputs) #forward pass
-            loss = criterion(output, labels) #compute loss
-            loss.backward()  #backward pass
-            optimizer.step() #update weights
+            inputs, labels = inputs.to(device), labels.to(device)
+            optimizer.zero_grad()
+            output = model(inputs)
+            loss = criterion(output, labels)
+            loss.backward()
+            optimizer.step()
             total_train_loss += loss.item()
 
         # Validation mode
         model.eval()
-        total_val_loss, total_acc = 0, 0 #Initialize total_val_loss  & total_acc to 0
-        with torch.no_grad(): #disable gradient computations
+        total_val_loss, total_acc = 0, 0
+        with torch.no_grad():
             for inputs, labels in val_loader:
                 inputs, labels = inputs.to(device), labels.to(device)
-                output = model(inputs) #forward pass
-                val_loss = criterion(output, labels) #compute loss
+                output = model(inputs)
+                val_loss = criterion(output, labels)
                 total_val_loss += val_loss.item()
                 preds = torch.argmax(output, dim=1)
-                total_acc += (preds == labels).sum().item() / len(labels) # compute accurace
+                total_acc += (preds == labels).sum().item()
 
         avg_train_loss = total_train_loss / len(train_loader)
         avg_val_loss = total_val_loss / len(val_loader)
-        avg_acc = total_acc / len(val_loader)
+        avg_acc = total_acc / len(val_loader.dataset)
 
         train_losses.append(avg_train_loss)
         val_losses.append(avg_val_loss)
         val_accs.append(avg_acc)
 
         print(f'Epoch: {epoch+1}/{epochs}, Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}, Val Acc: {avg_acc:.4f}')
+        
+        #Simulate the state dictionary
+        state = {
+            'meters': {
+                'val_loss': type('Metric', (), {'value': avg_val_loss})()
+            }
+        }
+    
+        # Call EarlyStopping
+        try:
+            early_stopping.on_epoch_end(None, state)
+        except EarlyStoppingException:
+            print("Early stopping triggered.")
+            break
 
-    return train_losses, val_losses, val_accs
+    return train_losses, val_losses, val_accs, model
 
 
-def tune_model_hyperparameters(model_class, model_args, train_data, train_labels, param_grid, epochs, device, k_folds=5):
+def tune_hyperparams(model_class, model_args, train_data, train_labels, param_grid, epochs, device, k_folds=2, batch_size=128):
     """
-    Performs hyperparameter tuning for a given model class using grid search and the already implemented training/validation function.
-
-    Args:
-        model_class (type): The class of the model to instantiate.
-        model_args (dict): Additional fixed arguments to pass when initializing the model.
-        train_data : Input data for training.
-        train_labels: Labels corresponding to `train_data`.
-        param_grid (dict): Dictionary defining the hyperparameter grid with keys corresponding to variable parameters.
-        epochs (int): Number of epochs for training each hyperparameter combination.
-        device (str): Device to train the model on.
-
-    Returns:
-        tuple: 
-            - best_params (dict): Dictionary of the best hyperparameter configuration.
-            - best_accuracy (float): Highest validation accuracy achieved with the best configuration.
+    Performs hyperparameter tuning using grid search and K-Fold cross-validation.
     """
-    #Initialize best_accuracy and best_paramas variables
-    best_accuracy = 0 
+    best_accuracy = 0
     best_params = {}
     kfold = KFold(n_splits=k_folds)
 
-    # Generate all combinations of hyperparameters from param_grid
     param_combinations = list(product(*param_grid.values()))
     param_names = list(param_grid.keys())
 
-    
-    # Split the data
-    X_train, X_val, y_train, y_val = train_test_split(train_data, train_labels, test_size=0.2, random_state=42)
-
     for params in param_combinations:
         fold_accuracies = []
-        # Combine param combination with fixed args
         param_dict = dict(zip(param_names, params))
-        model_args_with_params = {**model_args, **param_dict}
-        
-        for fold, (train_idx, val_idx) in enumerate(kfold.split(train_data, train_labels)):
-            
-            print(f"Training fold {fold+1}/{k_folds} with parameters: "
-                f"embedding_dim={param_dict.get('embedding_dim')}, "
-                f"hidden_dim={param_dict.get('hidden_dim')}, "
-                f"n_layers={param_dict.get('n_layers')}, "
-                f"learning_rate={param_dict.get('learning_rate')}")
-            
-            # Split the data into training and validation sets based on the current fold
-            X_train_k, X_val_k = X_train[train_idx], X_train[val_idx]
-            y_train_k, y_val_k = y_train[train_idx], y_train[val_idx]
+        param_dict_without_lr = {k: v for k, v in param_dict.items() if k != 'learning_rate'}
+        model_args_with_params = {**model_args, **param_dict_without_lr}
 
-            # Create DataLoader for training and validation sets
-            train_loader = torch.utils.data.DataLoader(
-                            torch.utils.data.TensorDataset(torch.tensor(X_train_k), torch.tensor(y_train_k)),
-                            batch_size=32, shuffle=True
-                        )
-            val_loader = torch.utils.data.DataLoader(
-                            torch.utils.data.TensorDataset(torch.tensor(X_val_k), torch.tensor(y_val_k)),
-                            batch_size=32, shuffle=False
-                        )
-        
-            # Initialize the model
+        for fold, (train_idx, val_idx) in enumerate(kfold.split(train_data)):
+            torch.manual_seed(42)
+            np.random.seed(42)
+            print(f"Fold {fold+1}/{k_folds}, Params: {param_dict}")
+
+            # Split into fold-specific training and validation sets
+            X_train_k, X_val_k = train_data[train_idx], train_data[val_idx]
+            y_train_k, y_val_k = train_labels[train_idx], train_labels[val_idx]
+
+            train_loader = DataLoader(TensorDataset(X_train_k, y_train_k), batch_size=batch_size, shuffle=True)
+            val_loader = DataLoader(TensorDataset(X_val_k, y_val_k), batch_size=batch_size, shuffle=False)
+
+            # Initialize model
             model = model_class(**model_args_with_params).to(device)
             optimizer = optim.Adam(model.parameters(), lr=param_dict.get("learning_rate", 0.001))
             criterion = nn.CrossEntropyLoss()
 
-            # Call the train_and_validate function to train the model and get validation results
-            train_losses, val_losses, val_accs = train_and_validate(
-                model=model,
-                optimizer=optimizer,
-                criterion=criterion,
-                train_loader= train_loader, 
-                val_loader = val_loader,
-                epochs=epochs,
-                device=device
-            )
+            # Train and validate
+            _, _, val_accs, _ = train_and_validate(model, optimizer, criterion, train_loader, val_loader, epochs, device)
+            fold_accuracies.append(val_accs[-1])
 
-            # Get the best validation accuracy for this set of hyperparameters
-        fold_accuracies.append(val_accs[-1])
-        
-    avg_accuracy = np.mean(fold_accuracies)
-        
-        # Save best parameters
-    if avg_accuracy > best_accuracy:
-        best_accuracy = avg_accuracy
-        best_params = param_dict
+        avg_accuracy = np.mean(fold_accuracies)
+        if avg_accuracy > best_accuracy:
+            best_accuracy = avg_accuracy
+            best_params = param_dict
 
     return best_params, best_accuracy
 
 
-
-# Plotting function
-def plot_losses(model_name, train_losses, val_losses, epochs):
+def plot_losses(model_name, dataset_name, train_losses, val_losses, epochs):
+    """
+    Plots training and validation losses.
+    """
     plt.figure(figsize=(10, 5))
     plt.plot(range(1, epochs + 1), train_losses, label='Training Loss')
     plt.plot(range(1, epochs + 1), val_losses, label='Validation Loss')
-    plt.title(f'Training and Validation Losses for {model_name}')
+    plt.title(f'Training and Validation Losses for {model_name} {dataset_name}')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.legend()
+    plt.show()
+
+
+def preprocess(text):
+    """
+    Preprocesses text by converting to lowercase and removing non-alphanumeric characters.
+    """
+    text = text.lower()
+    text = re.sub(r'[^\w\s]', '', text)
+    return text
+
+
+def tokenize_and_pad(train_data, train_vocab=None, max_length=75):
+    """
+    Tokenizes and pads training data.
+    """
+    UNK_TOKEN = "<unk>"
+    PAD_TOKEN = "<pad>"
+    tokenized_data = [word_tokenize(sentence.lower()) for sentence in train_data['text'].tolist()]
+    token_counts = Counter()
+    
+    # Count tokens
+    for tokens in tokenized_data:
+        # Check if vocabulary is provided (training set tokenization)
+        if train_vocab is None:
+            token_counts.update(tokens)
+        else:
+            # Use provided training vocabulary for test set tokenization
+            for token in tokens:
+                if token in train_vocab:
+                    token_counts.update(token)
+                else:
+                    token_counts.update(UNK_TOKEN)
+        
+    # Create vocabulary
+    vocab = {word: idx + 2 for idx, (word, _) in enumerate(token_counts.items())}
+    vocab[UNK_TOKEN] = 0
+    vocab[PAD_TOKEN] = 1
+
+    # Numericalize tokens
+    numericalized = [
+        [vocab.get(word, vocab[UNK_TOKEN]) for word in tokens]
+        for tokens in tokenized_data
+    ]
+    numericalized = [torch.tensor(seq) for seq in numericalized]
+
+    # Pad sequences
+    padded_sequences = pad_sequence(numericalized, batch_first=True, padding_value=vocab[PAD_TOKEN])
+
+    if padded_sequences.size(1) < max_length:
+        padding = torch.full((padded_sequences.size(0), max_length - padded_sequences.size(1)), vocab[PAD_TOKEN])
+        padded_sequences = torch.cat([padded_sequences, padding], dim=1)
+    else:
+        padded_sequences = padded_sequences[:, :max_length]
+
+    vocab_size = len(vocab)
+    
+    return padded_sequences, vocab, vocab_size
+
+
+def train_val_split(train_data, train_labels, val_split=0.2, batch_size=128):
+    """
+    Splits training data into training and validation sets.
+    """
+    # Convert train_data and train_labels to numpy arrays if they are not already
+    train_data = train_data.numpy() if isinstance(train_data, torch.Tensor) else train_data
+    train_labels = train_labels.numpy() if isinstance(train_labels, torch.Tensor) else train_labels
+
+    # Use train_test_split to split the data into training and validation sets
+    X_train, X_val, y_train, y_val = train_test_split(
+        train_data, train_labels, test_size=val_split, random_state=42
+    )
+
+    # Convert the numpy arrays back to torch tensors
+    X_train = torch.tensor(X_train, dtype=torch.long)
+    X_val = torch.tensor(X_val, dtype=torch.long)
+    y_train = torch.tensor(y_train, dtype=torch.long)
+    y_val = torch.tensor(y_val, dtype=torch.long)
+    
+    # Create DataLoader for training and validation sets
+    train_loader = DataLoader(TensorDataset(X_train, y_train), batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(TensorDataset(X_val, y_val), batch_size=batch_size, shuffle=False)
+
+    return train_loader, val_loader
+
+
+def test(model, test_loader, device):
+    """
+    Tests a PyTorch model.
+    """
+    predictions, true_labels = [], []
+    
+    # Set model to evaluation mode
+    model.eval()
+    with torch.no_grad():  # Disable gradient computation for testing
+        for inputs, labels in test_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            preds = torch.argmax(outputs, dim=1)  # Get predicted class
+            predictions.extend(preds.cpu().numpy())
+            true_labels.extend(labels.cpu().numpy())
+
+    return predictions, true_labels
+
+def compute_metrics(predictions, true_labels): 
+    """
+    Computes metrics for model performance.
+    """
+    metrics={}
+    
+    metrics['accuracy'] = accuracy_score(true_labels, predictions)
+    metrics['precision'] = precision_score(true_labels, predictions, average='macro')
+    metrics['recall'] = recall_score(true_labels, predictions, average='macro')
+    metrics['f1'] = f1_score(true_labels, predictions, average='macro')
+    
+    metrics['precision_weighted'] = precision_score(true_labels, predictions, average='weighted')
+    metrics['recall_weighted'] = recall_score(true_labels, predictions, average='weighted')
+    metrics['f1_weighted'] = f1_score(true_labels, predictions, average='weighted')
+    
+    return metrics
+
+def plot_confusion_matrix(true_labels, predictions, label_classes):
+    """
+    Plots a confusion matrix.
+    """
+    cm = confusion_matrix(true_labels, predictions)
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=label_classes, yticklabels=label_classes)
+    plt.xlabel('Predicted Labels')
+    plt.ylabel('True Labels')
+    plt.title('Confusion Matrix')
     plt.show()
