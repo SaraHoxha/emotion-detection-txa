@@ -75,7 +75,7 @@ def train_and_validate(model, optimizer, criterion, train_loader, val_loader, ep
     return train_losses, val_losses, val_accs, model
 
 
-def tune_hyperparams(model_class, model_args, train_data, train_labels, param_grid, epochs, device, k_folds=2, batch_size=128):
+def tune_hyperparams(model_class, model_args, train_data, train_labels, param_grid, epochs, device, k_folds=5, batch_size=128):
     """
     Performs hyperparameter tuning using grid search and K-Fold cross-validation.
     """
