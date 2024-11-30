@@ -8,6 +8,7 @@ import numpy as np
 from torch.utils.data import DataLoader, TensorDataset
 from torch.nn.utils.rnn import pad_sequence
 import nltk
+nltk.download('punkt_tab')
 from nltk.tokenize import word_tokenize
 from collections import Counter
 from torchtools.callbacks import EarlyStopping
