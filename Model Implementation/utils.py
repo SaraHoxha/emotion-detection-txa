@@ -29,7 +29,8 @@ def train_and_validate(model, optimizer, criterion, train_loader, val_loader, ep
         model.train()
         total_train_loss = 0
         for inputs, labels in train_loader:
-            inputs, labels = inputs.to(device), labels.to(device)
+            inputs = inputs.to(device)
+            labels = labels.to(torch.long).to(device)
             optimizer.zero_grad()
             output = model(inputs)
             loss = criterion(output, labels)
@@ -42,7 +43,8 @@ def train_and_validate(model, optimizer, criterion, train_loader, val_loader, ep
         total_val_loss, total_acc = 0, 0
         with torch.no_grad():
             for inputs, labels in val_loader:
-                inputs, labels = inputs.to(device), labels.to(device)
+                inputs = inputs.to(device)
+                labels = labels.to(torch.long).to(device)
                 output = model(inputs)
                 val_loss = criterion(output, labels)
                 total_val_loss += val_loss.item()
