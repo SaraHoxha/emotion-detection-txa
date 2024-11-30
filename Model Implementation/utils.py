@@ -101,6 +101,9 @@ def tune_hyperparams(model_class, model_args, train_data, train_labels, param_gr
             # Split into fold-specific training and validation sets
             X_train_k, X_val_k = train_data[train_idx], train_data[val_idx]
             y_train_k, y_val_k = train_labels[train_idx], train_labels[val_idx]
+            
+            y_train_k.to(torch.long)
+            y_val_k.to(torch.long)
 
             train_loader = DataLoader(TensorDataset(X_train_k, y_train_k), batch_size=batch_size, shuffle=True)
             val_loader = DataLoader(TensorDataset(X_val_k, y_val_k), batch_size=batch_size, shuffle=False)
