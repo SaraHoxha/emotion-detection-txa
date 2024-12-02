@@ -16,13 +16,25 @@ from torchtools.exceptions import EarlyStoppingException
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 import seaborn as sns
 
+def initialize_weights(model):
+    for name, param in model.named_parameters():
+        if 'weight' in name:
+            if 'rnn' in name:  # For RNN layers
+                if 'weight_ih' in name:  # Input-to-hidden weights
+                    torch.nn.init.xavier_uniform_(param)
+                elif 'weight_hh' in name:  # Hidden-to-hidden weights
+                    torch.nn.init.orthogonal_(param)  # Orthogonal initialization for hidden-to-hidden weights
+            elif 'fc' in name:  # Fully connected layer weights
+                torch.nn.init.xavier_uniform_(param)  # Xavier initialization for fully connected layers
+        elif 'bias' in name:  # Initialize biases
+            torch.nn.init.zeros_(param)  # Initialize biases to zero
 
-def train_and_validate(model, optimizer, criterion, train_loader, val_loader, epochs, device):
+def train_and_validate(model, optimizer, criterion, train_loader, val_loader, epochs, device, patience):
     """
     Trains and validates a PyTorch model.
     """
     train_losses, val_losses, val_accs = [], [], []
-    early_stopping = EarlyStopping(monitor="val_loss", mode='min', patience=5)
+    early_stopping = EarlyStopping(monitor="val_loss", mode='min', patience=patience)
 
     for epoch in range(epochs):
         # Training mode
@@ -78,7 +90,7 @@ def train_and_validate(model, optimizer, criterion, train_loader, val_loader, ep
     return train_losses, val_losses, val_accs, model
 
 
-def tune_hyperparams(model_class, model_args, train_data, train_labels, param_grid, epochs, device, k_folds=5, batch_size=128):
+def tune_hyperparams(model_class, model_args, train_data, train_labels, param_grid, epochs, device, patience, k_folds=5, batch_size=128):
     """
     Performs hyperparameter tuning using grid search and K-Fold cross-validation.
     """
@@ -112,11 +124,12 @@ def tune_hyperparams(model_class, model_args, train_data, train_labels, param_gr
 
             # Initialize model
             model = model_class(**model_args_with_params).to(device)
-            optimizer = optim.Adam(model.parameters(), lr=param_dict.get("learning_rate", 0.001))
+            initialize_weights(model)
+            optimizer = optim.Adam(model.parameters(), lr=param_dict.get("learning_rate", 0.001), weight_decay=1e-5)
             criterion = nn.CrossEntropyLoss()
 
             # Train and validate
-            _, _, val_accs, _ = train_and_validate(model, optimizer, criterion, train_loader, val_loader, epochs, device)
+            _, _, val_accs, _ = train_and_validate(model, optimizer, criterion, train_loader, val_loader, epochs, device, patience)
             fold_accuracies.append(val_accs[-1])
 
         avg_accuracy = np.mean(fold_accuracies)
