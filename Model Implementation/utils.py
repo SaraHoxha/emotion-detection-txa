@@ -6,11 +6,6 @@ from itertools import product
 import matplotlib.pyplot as plt
 import numpy as np
 from torch.utils.data import DataLoader, TensorDataset
-from torch.nn.utils.rnn import pad_sequence
-import nltk
-nltk.download('punkt_tab')
-from nltk.tokenize import word_tokenize
-from collections import Counter
 from torchtools.callbacks import EarlyStopping
 from torchtools.exceptions import EarlyStoppingException
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
@@ -152,63 +147,6 @@ def plot_losses(model_name, dataset_name, train_losses, val_losses, epochs):
     plt.ylabel('Loss')
     plt.legend()
     plt.show()
-
-
-def preprocess(text):
-    """
-    Preprocesses text by converting to lowercase and removing non-alphanumeric characters.
-    """
-    text = text.lower()
-    text = re.sub(r'[^\w\s]', '', text)
-    return text
-
-
-def tokenize_and_pad(train_data, train_vocab=None, max_length=75):
-    """
-    Tokenizes and pads training data.
-    """
-    UNK_TOKEN = "<unk>"
-    PAD_TOKEN = "<pad>"
-    tokenized_data = [word_tokenize(sentence.lower()) for sentence in train_data['text'].tolist()]
-    token_counts = Counter()
-    
-    # Count tokens
-    for tokens in tokenized_data:
-        # Check if vocabulary is provided (training set tokenization)
-        if train_vocab is None:
-            token_counts.update(tokens)
-        else:
-            # Use provided training vocabulary for test set tokenization
-            for token in tokens:
-                if token in train_vocab:
-                    token_counts.update(token)
-                else:
-                    token_counts.update(UNK_TOKEN)
-        
-    # Create vocabulary
-    vocab = {word: idx + 2 for idx, (word, _) in enumerate(token_counts.items())}
-    vocab[UNK_TOKEN] = 0
-    vocab[PAD_TOKEN] = 1
-
-    # Numericalize tokens
-    numericalized = [
-        [vocab.get(word, vocab[UNK_TOKEN]) for word in tokens]
-        for tokens in tokenized_data
-    ]
-    numericalized = [torch.tensor(seq) for seq in numericalized]
-
-    # Pad sequences
-    padded_sequences = pad_sequence(numericalized, batch_first=True, padding_value=vocab[PAD_TOKEN])
-
-    if padded_sequences.size(1) < max_length:
-        padding = torch.full((padded_sequences.size(0), max_length - padded_sequences.size(1)), vocab[PAD_TOKEN])
-        padded_sequences = torch.cat([padded_sequences, padding], dim=1)
-    else:
-        padded_sequences = padded_sequences[:, :max_length]
-
-    vocab_size = len(vocab)
-    
-    return padded_sequences, vocab, vocab_size
 
 
 def train_val_split(train_data, train_labels, val_split=0.2, batch_size=128):
