@@ -120,7 +120,7 @@ def tune_hyperparams(model_class, model_args, train_data, train_labels, param_gr
             # Initialize model
             model = model_class(**model_args_with_params).to(device)
             initialize_weights(model)
-            optimizer = optim.Adam(model.parameters(), lr=param_dict.get("learning_rate", 0.001), weight_decay=1e-5)
+            optimizer = optim.Adam(model.parameters(), lr=param_dict.get("learning_rate", 0.001), weight_decay=param_dict.get("weight_decay",1e-5))
             criterion = nn.CrossEntropyLoss()
 
             # Train and validate
