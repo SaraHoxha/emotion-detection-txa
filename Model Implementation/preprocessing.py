@@ -1,13 +1,12 @@
-import torch
-import re
-from torch.nn.utils.rnn import pad_sequence
 import nltk
 nltk.download('punkt_tab')
-from collections import Counter
 from nltk.tokenize import word_tokenize
 import numpy as np
 import contractions
-
+import re
+from keras.preprocessing.sequence import pad_sequences
+import contractions
+from keras.preprocessing.text import Tokenizer
 def preprocess(text):
     """
     Preprocesses text by converting to lowercase and removing non-alphanumeric characters.
@@ -19,21 +18,21 @@ def preprocess(text):
     return text
 
 
-def tokenize_and_pad(train_data, train_vocab=None):
+def tokenize_and_pad(train_data, max_length=100, num_words = 100000):
     """
-    Tokenizes and pads training data.
+    Tokenizes and pads training data using Keras' Tokenizer.
+    
     Args:
-        train_data: A DataFrame with a 'text' column containing text data.
-        train_vocab: A dictionary mapping words to indices for tokenization (optional for training).
-    
+        train_data: A list or pandas Series of text data for training.
+        num_words: Maximum number of words to keep in the vocabulary.
+        max_length: Maximum sequence length after padding/truncating.
+
     Returns:
-        padded_sequences: Tensor of tokenized and padded sequences.
-        vocab: Vocabulary dictionary mapping words to indices.
-        vocab_size: Size of the vocabulary.
+        padded_sequences: Numpy array of tokenized and padded sequences.
+        tokenizer: The Keras Tokenizer fitted on the training data.
+        vocab_size: Size of the vocabulary (num_words + OOV + padding token).
     """
-    UNK_TOKEN = "<unk>"
-    PAD_TOKEN = "<pad>"
-    
+    UNK_TOKEN = "<unk>" 
     # Tokenize data
     tokenized_data = [word_tokenize(sentence.lower()) for sentence in train_data['text'].tolist()]
     
@@ -43,35 +42,16 @@ def tokenize_and_pad(train_data, train_vocab=None):
     # Set max_length to the 95th percentile of sequence lengths
     max_length = int(np.percentile(tokenized_lengths, 95))
     
-    # If no vocabulary is provided, create one from the training data
-    if train_vocab is None:
-        token_counts = Counter()
-        for tokens in tokenized_data:
-            token_counts.update(tokens)
-        vocab = {word: idx + 2 for idx, (word, _) in enumerate(token_counts.items())}
-        vocab[UNK_TOKEN] = 0
-        vocab[PAD_TOKEN] = 1
-    else:
-        # Use provided vocabulary for tokenization
-        vocab = train_vocab
+    # Initialize and fit tokenizer on training data
+    tokenizer = Tokenizer(num_words=num_words, oov_token=UNK_TOKEN)
+    tokenizer.fit_on_texts(train_data['text'])
+
+    # Convert text to sequences
+    sequences = tokenizer.texts_to_sequences(train_data['text'])
     
-    # Numericalize tokens
-    numericalized = [
-        [vocab.get(word, vocab[UNK_TOKEN]) for word in tokens]
-        for tokens in tokenized_data
-    ]
-    numericalized = [torch.tensor(seq) for seq in numericalized]
-
-    # Pad sequences
-    padded_sequences = pad_sequence(numericalized, batch_first=True, padding_value=vocab[PAD_TOKEN])
-
-    # Truncate or pad to the specified max_length
-    if padded_sequences.size(1) < max_length:
-        padding = torch.full((padded_sequences.size(0), max_length - padded_sequences.size(1)), vocab[PAD_TOKEN])
-        padded_sequences = torch.cat([padded_sequences, padding], dim=1)
-    else:
-        padded_sequences = padded_sequences[:, :max_length]
-
-    vocab_size = len(vocab)
+    # Pad sequences to the specified max_length
+    padded_sequences = pad_sequences(sequences, maxlen=max_length, padding="post", truncating="post")
     
-    return padded_sequences, vocab, vocab_size
+    vocab_size = len(tokenizer.word_index) + 1  # Add 1 for padding token
+
+    return padded_sequences, tokenizer, vocab_size
