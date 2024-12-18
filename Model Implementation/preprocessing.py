@@ -4,7 +4,7 @@ from nltk.tokenize import word_tokenize
 import numpy as np
 import contractions
 import re
-from keras.preprocessing.sequence import pad_sequences
+from keras.utils import pad_sequences
 import contractions
 from keras.preprocessing.text import Tokenizer
 def preprocess(text):
