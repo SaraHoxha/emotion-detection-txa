@@ -1,5 +1,7 @@
 #For data
 /Explainability/train.csv
+/Model Implementation/data/temp/
+
 
 #For code files
 /Explainability/guide_SVM_LIME.ipynb
