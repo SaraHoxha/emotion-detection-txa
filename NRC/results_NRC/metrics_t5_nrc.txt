@@ -1,0 +1,5 @@
+Metrics for NRC:
+Accuracy: 0.2211
+Precision: 0.5155
+Recall: 0.2211
+F1-Score: 0.2860
