@@ -1,0 +1,33 @@
+Test Accuracy: 0.7268
+
+Macro metrics
+Macro precision: 0.6049
+Macro recall: 0.6722
+Macro F1 score: 0.6324
+
+Weighted metrics
+Weighted precision: 0.7350
+Weighted recall: 0.7268
+Weighted F1 score: 0.7293
+
+Classification report:
+              precision    recall  f1-score   support
+
+       anger       0.73      0.67      0.70      7417
+        fear       0.56      0.65      0.60      3014
+         joy       0.82      0.78      0.80     10865
+        love       0.25      0.42      0.31       122
+     sadness       0.65      0.75      0.70      2804
+    surprise       0.62      0.76      0.69       252
+
+    accuracy                           0.73     24474
+   macro avg       0.60      0.67      0.63     24474
+weighted avg       0.73      0.73      0.73     24474
+
+Confusion matrix:
+[[4964  758 1149   56  461   29]
+ [ 474 1945  420   16  135   24]
+ [1074  638 8519   70  509   55]
+ [  28    6   29   51    8    0]
+ [ 256  132  280   12 2116    8]
+ [   6   19   30    0    5  192]]
