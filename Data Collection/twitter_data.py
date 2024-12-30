@@ -1,3 +1,4 @@
+#Author: Sara Hoxha
 from twikit import Client, TooManyRequests
 from datetime import datetime
 import time
