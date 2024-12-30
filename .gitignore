@@ -1,5 +1,9 @@
 #For data
 /Explainability/train.csv
+/Model Implementation/data/temp/
 
+#For the twitter authentication
+/Data Collection/cookies.json
+/Data Collection/twitter_config.ini
 #For code files
 /Explainability/guide_SVM_LIME.ipynb
