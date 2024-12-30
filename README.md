@@ -2,19 +2,18 @@
 This repository contains code/report prepared for our project on "Emotion Detection on Remote Working" for the "Text Analytics" course at University of Pisa.
 
 ## Project Goal
-Our goal is to gain insight and shed light on how workers feel about remote work is essential, as their emotional well-being directly influences their job performance, overall satisfaction, and mental health. To do so, we will develop an emotion model that detects a range of emotions based on posts and discussions on social media platforms that remote workers engage in. The model will rely on the “Basic Emotions” framework developed by psychologist Paul Ekman (1984), which includes the following recognized emotions:  
+Our goal is to gain insight and shed light on how workers feel about remote work is essential, as their emotional well-being directly influences their job performance, overall satisfaction, and mental health. To do so, we will develop an emotion model that detects a range of emotions based on posts and discussions on social media platforms that remote workers engage in. The model will rely on the “Basic Emotions” framework developed by psychologist Parrott, which includes the following recognized primary emotions:  
 
 - Anger: Characterized by furrowed brows, clenched jaws, and a narrowed gaze. Anger often arises from frustration, threat, or injustice.
-- Disgust: Manifested through wrinkled nose, raised upper lip, and lowered cheeks. Disgust is typically associated with unpleasant tastes, smells, or sights.
+- Love: Characterized by soft eyes, a gentle smile, and relaxed facial expressions. Love is an intense emotion of deep affection, care, and connection.
 - Fear: Expressed through wide eyes, raised eyebrows, and a parted mouth. Fear is a response to perceived danger or threat.
 - Joy: Indicated by smiling, raised cheeks, and crinkled eyes. Joy is a positive emotion associated with pleasure and satisfaction.
 - Sadness: Characterized by drooping eyebrows, downturned mouth, and a tearful gaze. Sadness is often a response to loss, disappointment, or grief.
-- Surprise: Expressed through raised eyebrows, wide eyes, and an open mouth. Surprise is a brief emotion triggered by unexpected events. 
+- Surprise: Expressed through raised eyebrows, wide eyes, and an open mouth. Surprise is a brief emotion triggered by unexpected events.
+
+A table visualizing Parrott's emotion framework can be found [here](https://www.researchgate.net/figure/Parrotts-emotion-framework_tbl1_266657790).
  
-Our research and data analysis, will seek to answer these questions: 
- 
-1. How do employees feel about remote working after the COVID-19 pandemic?
-2. How has the emotional response to remote work changed over time?
+Our research and data analysis, will seek to answer this primary question - **How do employees feel about remote working after the COVID-19 pandemic?**
 
 ## Project Structure
 
