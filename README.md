@@ -39,3 +39,31 @@ The project is organized into the following directories:
          - **Stop Words Removal**: Eliminates common words that do not add semantic value (e.g., "the," "and," "of," etc.).
          - **Emoji and Special Characters Mapping**: Maps emojis and special characters to equivalent words or removes them as appropriate.
 
+
+### 3. **Pre Trained Model Implementation**
+**TODO**
+
+### 4. **Model Implementation**
+   - **Purpose**: This folder contains notebooks and scripts dedicated to implementing our emotional detection models which fall into two categories deep learning (RNN, BiRNN, LSTM) and SVM for both datasets Yangswei_85 and T5.
+   - **Files & Folders**:
+      -  Every model has its own notebook implementing the model, hypertuning the parameters, training, testing, and evaluating the performance.
+      - `data`: contains the files split into train & test for both datasets.
+      - `models`: contains the best model archicterure from each model saved in h5 or keras formats.
+      - `results`: contains the results from the tests of the models which include respective plots, metrics, and matrices. Each model contains these materials within its own subfolder.
+
+### 5. **Explainability**
+   - **Purpose**: This folder contains notebooks dedicated to explainability techniques, specifically LIME, enabling the interpretation and analysis of predictions made by our emotion detection models. We choose one specific instance and analysed how different models predicted and "rationalized" their predictions.
+   - **Files & Folders**:
+      - `NN_LIME.ipynb`: Demonstrates the use of LIME to explain predictions made by the deep learning emotion detection models (RNN, BiRNN and LSTM) for both datasets.
+      - `SVM_LIME.ipynb`: Applies LIME to analyze and interpret predictions from the SVM-based emotion detection model.
+      - `Results`: contains the results from applying LIME to SVM and NN models saved into two subfolders for better clarity: SVM and NN.
+
+### 6. **NRC**
+**TODO**
+
+### 7. **general_utils**
+   - **Purpose**: This folder contains scripts with utility functions that are used throughout the files in our project.
+   - **Files & Folders**:
+      - `metrics_plot_uils.py`: script that computes metrics, plots a confusion matrix, plot a training-validation losses curve plot for a given model.
+      - `preprocessing.py`: script that contains utility functions for preprocessing the  NN models such as fixing contractions, tokenization, padding etc.
+      - `svm_utils.py`: script that contains utility functions for the SVM models such as preprocessing text, saving and loading pickle files.
