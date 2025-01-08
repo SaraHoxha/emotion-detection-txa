@@ -1,0 +1,20 @@
+              precision    recall  f1-score   support
+
+       anger       0.70      0.70      0.70      3296
+        fear       0.66      0.59      0.62      1155
+         joy       0.88      0.90      0.89     13353
+        love       0.61      0.70      0.65       164
+     sadness       0.78      0.75      0.76      4008
+    surprise       0.72      0.83      0.77       313
+
+    accuracy                           0.82     22289
+   macro avg       0.72      0.74      0.73     22289
+weighted avg       0.82      0.82      0.82     22289
+
+model = Sequential()
+model.add(Embedding(input_dim=vocab_size, output_dim=256))
+model.add(LSTM(256, return_sequences=True))
+model.add(Dropout(0.3))
+model.add(LSTM(96))     
+model.add(Dropout(0.3))
+model.add(Dense(num_classes, activation='softmax'))  
