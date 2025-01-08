@@ -39,8 +39,15 @@ The project is organized into the following directories:
          - **Emoji and Special Characters Mapping**: Maps emojis and special characters to equivalent words or removes them as appropriate.
 
 
-### 3. **Pre Trained Model Implementation**
-**TODO**
+### 3. **Pre Trained Model Implementation
+   - **Purpose**: This folder contains the notebooks used to implement the pre-trained models for ground truth generation over the dataset. Particularly, two pre-trained models were implemented: Google's T5 and (distilRoBERTa) Yangswei, trained specifically on Parrot's emotion tree.
+
+   -  **Files & Folders:**:
+      - `distilRoBERTa.ipynb`: Contains the implementation of the distilRoBERTa pre-trained model on the dataset.
+      - `T5_model.ipynb`: Contains the implementation of the T5 model on the dataset.
+      - `exploration_labels.ipynb`: Contains a preliminary exploration of the results of the distilRoBERTa model.
+      - `labeled_data_reddit_text_yangswei_85.csv`: Dataset with the results of the distilRoBERTa model.
+      - `t5_model_final.csv`: Dataset with the results of the T5 model.
 
 ### 4. **Model Implementation**
    - **Purpose**: This folder contains notebooks and scripts dedicated to implementing our emotional detection models which fall into two categories deep learning (RNN, BiRNN, LSTM) and SVM for both datasets Yangswei_85 and T5.
