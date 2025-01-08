@@ -58,8 +58,13 @@ The project is organized into the following directories:
       - `Results`: contains the results from applying LIME to SVM and NN models saved into two subfolders for better clarity: SVM and NN.
 
 ### 6. **NRC**
-**TODO**
-
+  - **Purpose**: This folder contains the notebook and files used for implementing the NRC Lexicon used for comparative analysis.
+   - **Files & Folders**:
+      - `Basic NRC.ipynb`: contains the notebook where NRC is implemented on both datasets.
+      - `t5_metrics_nrc.txt`: contains the metric results from testing T5.
+      - `yangswei_85_metrics_nrc.txt`: contains the metric results from testing Yangswei 85.
+      - `NRC-Emotion-Lexicon-Wordlevel-v0.92.txt`: contains the NRC lexicon utilized.
+        
 ### 7. **general_utils**
    - **Purpose**: This folder contains scripts with utility functions that are used throughout the files in our project.
    - **Files & Folders**:
