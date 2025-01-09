@@ -39,7 +39,7 @@ The project is organized into the following directories:
          - **Emoji and Special Characters Mapping**: Maps emojis and special characters to equivalent words or removes them as appropriate.
 
 
-### 3. **Pre Trained Model Implementation
+### 3. **Pre Trained Model Implementation**
    - **Purpose**: This folder contains the notebooks used to implement the pre-trained models for ground truth generation over the dataset. Particularly, two pre-trained models were implemented: Google's T5 and (distilRoBERTa) Yangswei, trained specifically on Parrot's emotion tree.
 
    -  **Files & Folders:**:
